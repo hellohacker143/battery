@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Mobile Charging Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        #chargingStatus {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #chargingProgress {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        #progressBar {
+            height: 30px;
+            width: 0;
+            background-color: #4caf50;
+            border-radius: 8px;
+        }
+        #chargingMode {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Mobile Charging Status</h1>
+    <div id="chargingStatus">Battery Status: 0%</div>
+    <div id="chargingProgress">
+        <div id="progressBar"></div>
+    </div>
+    <div id="chargingMode"></div>
+
+    <script>
+        // Function to update the live charging status
+        function updateBatteryStatus(battery) {
+            const statusElement = document.getElementById('chargingStatus');
+            const progressBar = document.getElementById('progressBar');
+            const chargingMode = document.getElementById('chargingMode');
+            
+            // Update the charging percentage
+            let percentage = Math.floor(battery.level * 100);
+            statusElement.innerText = `Battery Status: ${percentage}%`;
+
+            // Update the progress bar
+            progressBar.style.width = percentage + "%";
+
+            // Update charging mode
+            if (battery.charging) {
+                chargingMode.innerText = "Charging... (Plugged in)";
+            } else {
+                chargingMode.innerText = "Not Charging";
+            }
+
+            // Trigger vibration when charging is complete (100%)
+            if (percentage === 100) {
+                if ("vibrate" in navigator) {
+                    navigator.vibrate(500); // Vibrate for 500 milliseconds
+                }
+                chargingMode.innerText = "Fully Charged!";
+            }
+        }
+
+        // Function to fetch battery status
+        function getBatteryStatus() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(function(battery) {
+                    // Update battery status initially
+                    updateBatteryStatus(battery);
+
+                    // Listen for changes in battery status
+                    battery.onchargingchange = function() {
+                        updateBatteryStatus(battery);
+                    };
+                    battery.onlevelchange = function() {
+                        updateBatteryStatus(battery);
+                    };
+                });
+            } else {
+                alert("Battery Status API is not supported on this device.");
+            }
+        }
+
+        // Call the function to get battery status
+        getBatteryStatus();
+    </script>
+</body>
+</html>
